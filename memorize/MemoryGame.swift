@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MemoryGame<CardContent> {
+struct MemoryGame<CardContent> where CardContent:Equatable {
     
     var cards: [Card]
     
@@ -16,21 +16,56 @@ struct MemoryGame<CardContent> {
         cards = []
         //TODO: init cards
         for index in 0..<numberOfPairsOfCards {
-            cards = []
-            for index in 0..<numberOfPairsOfCards {
-                var cardContent: CardContent = createCardContent(index)
-                cards.append(Card(content:cardContent))
-                cards.append(Card(content:cardContent))
+                let cardContent: CardContent = createCardContent(index)
+            cards.append(Card(content:cardContent, id: "\(index)a"))
+            cards.append(Card(content:cardContent, id: "\(index)b"))
+        }
+        shuffle()
+    }
+    var lastFaceUpIndex: Int?
+    
+    mutating func choose(_ card: Card){
+        if let chosenIndex = index(of: card){
+            if let lastIndex = lastFaceUpIndex{
+                if cards[lastIndex].content == cards[chosenIndex].content{
+                    cards[lastIndex].isMatched = true
+                    cards[chosenIndex].isMatched = true
+                }
+                lastFaceUpIndex = nil
+            }else{
+                for i in 0..<cards.count{
+                    cards[i].isFaceUp = false
+                }
+                lastFaceUpIndex = chosenIndex
+            }
+            cards[chosenIndex].isFaceUp.toggle()
+            }
+        print("cards: \(cards)")
+    }
+    func index(of card: Card) -> Int? {
+        for i in 0..<cards.count{
+            if cards[i].id == card.id {
+                return i
             }
         }
+        return nil
     }
-    func choose(card: Card){
-        
+    mutating func shuffle(){
+        cards.shuffle()
+        print("shuffle cards:\(cards)")
     }
     
-    struct Card{
+    struct Card: Equatable, Identifiable{
+        
+        static func == (lhs:MemoryGame<CardContent>.Card,rhs:
+                       MemoryGame<CardContent>.Card) -> Bool{
+            lhs.content == rhs.content && lhs.isFaceUp ==
+            rhs.isFaceUp && lhs.isMatched == rhs.isMatched && lhs.id == rhs.id
+        }
         var isFaceUp: Bool = false
         var isMatched: Bool = false
         var content: CardContent
+        
+        let id : String
     }
 }
