@@ -4,12 +4,6 @@
 //
 //  Created by 11344153 on 2026/3/30.
 //
-//private static var emojis = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","牛","狗"]
-
-//
-//  EmojiMemoryGame.swift
-//  memorize
-//
 
 import SwiftUI
 
