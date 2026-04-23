@@ -7,65 +7,76 @@
 
 import Foundation
 
-struct MemoryGame<CardContent> where CardContent:Equatable {
-    
+struct MemoryGame<CardContent> where CardContent: Equatable {
     var cards: [Card]
+    private(set) var score: Int = 0 // 新增分數屬性，外部唯讀
     
-    init(numberOfPairsOfCards: Int ,
-         createCardContent: (Int) -> CardContent){
+    init(numberOfPairsOfCards: Int,
+         createCardContent: (Int) -> CardContent) {
         cards = []
-        //TODO: init cards
         for index in 0..<numberOfPairsOfCards {
-                let cardContent: CardContent = createCardContent(index)
-            cards.append(Card(content:cardContent, id: "\(index)a"))
-            cards.append(Card(content:cardContent, id: "\(index)b"))
+            let cardContent: CardContent = createCardContent(index)
+            cards.append(Card(content: cardContent, id: "\(index)a"))
+            cards.append(Card(content: cardContent, id: "\(index)b"))
         }
         shuffle()
     }
-    var lastFaceUpIndex: Int?
     
-    mutating func choose(_ card: Card){
-        if let chosenIndex = index(of: card){
-            if let lastIndex = lastFaceUpIndex{
-                if cards[lastIndex].content == cards[chosenIndex].content{
+    var lastFaceUpIndex: Int?
+    mutating func choose(_ card: Card) {
+        if let chosenIndex = index(of: card) {
+            if let lastIndex = lastFaceUpIndex {
+                // 判斷是否 Match
+                if cards[lastIndex].content == cards[chosenIndex].content {
                     cards[lastIndex].isMatched = true
                     cards[chosenIndex].isMatched = true
+                    score += 2 // match 時 +2
+                } else {
+                    // 翻開第二張卻沒有 match 時判斷是否已翻開過
+                    if cards[chosenIndex].hasBeenSeen { score -= 1 }
+                    if cards[lastIndex].hasBeenSeen { score -= 1 }
                 }
+                
+                // 兩張牌都已經參與過比對，標記為已翻過 (seen)
+                cards[chosenIndex].hasBeenSeen = true
+                cards[lastIndex].hasBeenSeen = true
+                
                 lastFaceUpIndex = nil
-            }else{
-                for i in 0..<cards.count{
+            } else {
+                for i in 0..<cards.count {
                     cards[i].isFaceUp = false
                 }
                 lastFaceUpIndex = chosenIndex
             }
             cards[chosenIndex].isFaceUp.toggle()
-            }
+        }
         print("cards: \(cards)")
+        print("current score: \(score)")
     }
+    
     func index(of card: Card) -> Int? {
-        for i in 0..<cards.count{
+        for i in 0..<cards.count {
             if cards[i].id == card.id {
                 return i
             }
         }
         return nil
     }
-    mutating func shuffle(){
+    
+    mutating func shuffle() {
         cards.shuffle()
-        print("shuffle cards:\(cards)")
+        print("shuffle cards: \(cards)")
     }
     
-    struct Card: Equatable, Identifiable{
-        
-        static func == (lhs:MemoryGame<CardContent>.Card,rhs:
-                       MemoryGame<CardContent>.Card) -> Bool{
-            lhs.content == rhs.content && lhs.isFaceUp ==
-            rhs.isFaceUp && lhs.isMatched == rhs.isMatched && lhs.id == rhs.id
+    struct Card: Equatable, Identifiable {
+        static func == (lhs: MemoryGame<CardContent>.Card, rhs: MemoryGame<CardContent>.Card) -> Bool {
+            lhs.content == rhs.content && lhs.isFaceUp == rhs.isFaceUp && lhs.isMatched == rhs.isMatched && lhs.id == rhs.id
         }
+        
         var isFaceUp: Bool = false
         var isMatched: Bool = false
+        var hasBeenSeen: Bool = false // 記住自己有沒有被翻開過
         var content: CardContent
-        
-        let id : String
+        var id: String
     }
 }
